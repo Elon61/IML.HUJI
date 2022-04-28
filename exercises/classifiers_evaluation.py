@@ -38,14 +38,26 @@ def run_perceptron():
     """
     for n, f in [("Linearly Separable", "linearly_separable.npy"), ("Linearly Inseparable", "linearly_inseparable.npy")]:
         # Load dataset
-        raise NotImplementedError()
+        data = np.load(f"../datasets/{f}")
+        split_data = np.hsplit(data, (data.shape[1] - 1, data.shape[1]))
+        features = split_data[0]
+        labels = split_data[1]
 
         # Fit Perceptron and record loss in each fit iteration
         losses = []
-        raise NotImplementedError()
+
+        def callback_func(perceptron, sample, response):
+            losses.append((len(losses), perceptron.loss(features, labels)))
+
+        model = Perceptron(callback=callback_func)
+        model.fit(features, labels)
 
         # Plot figure of loss as function of fitting iteration
-        raise NotImplementedError()
+        fig = go.Figure(go.Scatter(x=[x for x, y in losses], y=[y for x, y in losses]),
+                        layout=go.Layout(title=rf"Loss of the model at each iteration on the {n} dataset", xaxis_title=f"Iteration", yaxis_title="Loss", height=1200, width=1200))
+        fig.update_yaxes(range=[0, 1])
+
+        # fig.show()
 
 
 def get_ellipse(mu: np.ndarray, cov: np.ndarray):
@@ -79,28 +91,63 @@ def compare_gaussian_classifiers():
     """
     for f in ["gaussian1.npy", "gaussian2.npy"]:
         # Load dataset
-        raise NotImplementedError()
+        data = np.load(f"../datasets/{f}")
+        split_data = np.hsplit(data, (data.shape[1] - 1, data.shape[1]))
+        features = split_data[0]
+        labels = split_data[1]
 
         # Fit models and predict over training set
-        raise NotImplementedError()
+        model_LDA = LDA()
+        model_LDA.fit(features, labels)
+        model_naive_bayes = GaussianNaiveBayes()
+        model_naive_bayes.fit(features, labels)
 
         # Plot a figure with two suplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
         # on the right. Plot title should specify dataset used and subplot titles should specify algorithm and accuracy
         # Create subplots
         from IMLearn.metrics import accuracy
-        raise NotImplementedError()
+
+        acc_LDA = accuracy(labels, model_LDA.predict(features))
+        acc_bayes = accuracy(labels, model_naive_bayes.predict(features))
+
+        fig = make_subplots(1, 2, subplot_titles=(f"LDA: Acc={acc_LDA}", f"Bayes: Acc={acc_bayes}"))
+
 
         # Add traces for data-points setting symbols and colors
-        raise NotImplementedError()
+        fig1 = generate_fig(f, features, model_LDA.predict(features), acc_LDA, "LDA")
+        fig2 = generate_fig(f, features, model_naive_bayes.predict(features), acc_bayes, "Bayes")
+        for trace in fig1.data:
+            fig.append_trace(trace, 1, 1)
+        fig.update_layout()
+        for trace in fig2.data:
+            fig.append_trace(trace, 1, 2)
 
         # Add `X` dots specifying fitted Gaussians' means
-        raise NotImplementedError()
+        fig.append_trace(go.Scatter(x=[x for x, y in model_LDA.mu_], y=[y for x, y in model_LDA.mu_], mode="markers", marker={"symbol": "x-dot", "color": "black"}, name="Mean LDA"), 1, 1)
+        fig.append_trace(go.Scatter(x=[x for x, y in model_naive_bayes.mu_], y=[y for x, y in model_naive_bayes.mu_], mode="markers", marker={"symbol": "x-dot", "color": "black"}, name="Mean Bayes"), 1, 2)
 
         # Add ellipses depicting the covariances of the fitted Gaussians
-        raise NotImplementedError()
+        for i, (x, y) in enumerate(model_LDA.mu_):
+            x1, y1 = model_LDA.cov_[1] + model_LDA.cov_[0]
+            fig.add_shape(type="circle", xref="x", yref="y", x0=x-x1, y0=y-y1, x1=x+x1, y1=y+y1, opacity=0.5, row=1, col=1, fillcolor="White", line=dict(color="Black", width=3), layer="below")
+        for i, (x, y) in enumerate(model_naive_bayes.mu_):
+            x1, y1 = model_naive_bayes.vars_[i]
+            fig.add_shape(type="circle", xref="x", yref="y", x0=x-x1, y0=y-y1, x1=x+x1, y1=y+y1, opacity=0.5, row=1, col=2, fillcolor="White", line=dict(color="Black", width=3), layer="below")
+
+        fig.update_layout(height=1200, width=2400, title_text=f"Group predictions on the dataset {f}", title_x=0.5)
+        fig.show()
+
+
+def generate_fig(dataset_name, features, labels, accuracy, model_name, height=1200, width=1200):
+    unique_labels = np.unique(labels)
+    plots = [go.Scatter(x=[x for i, (x, y) in enumerate(features) if labels[i] == _x],
+                        y=[y for i, (x, y) in enumerate(features) if labels[i] == _x], mode="markers", name=f"Group {_x}") for _i, _x in enumerate(unique_labels)]
+    fig = go.Figure(plots, layout=go.Layout(title=f"Group predictions using {model_name} on the {dataset_name} dataset, the accuracy is {accuracy}",
+                                            xaxis_title=f"x", yaxis_title="x", height=height, width=width))
+    return fig
 
 
 if __name__ == '__main__':
     np.random.seed(0)
-    run_perceptron()
+    # run_perceptron()
     compare_gaussian_classifiers()
