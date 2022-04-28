@@ -57,7 +57,7 @@ def run_perceptron():
                         layout=go.Layout(title=rf"Loss of the model at each iteration on the {n} dataset", xaxis_title=f"Iteration", yaxis_title="Loss", height=1200, width=1200))
         fig.update_yaxes(range=[0, 1])
 
-        # fig.show()
+        fig.show()
 
 
 def get_ellipse(mu: np.ndarray, cov: np.ndarray):
@@ -112,7 +112,6 @@ def compare_gaussian_classifiers():
 
         fig = make_subplots(1, 2, subplot_titles=(f"LDA: Acc={acc_LDA}", f"Bayes: Acc={acc_bayes}"))
 
-
         # Add traces for data-points setting symbols and colors
         fig1 = generate_fig(f, features, model_LDA.predict(features), acc_LDA, "LDA")
         fig2 = generate_fig(f, features, model_naive_bayes.predict(features), acc_bayes, "Bayes")
@@ -130,8 +129,10 @@ def compare_gaussian_classifiers():
         for i, (x, y) in enumerate(model_LDA.mu_):
             fig.add_trace(get_ellipse(model_LDA.mu_[i], model_LDA.cov_))
         for i, (x, y) in enumerate(model_naive_bayes.mu_):
+            # print(model_naive_bayes.vars_[i][..., None] @ model_naive_bayes.vars_[i][..., None].T)
+            # fig.add_trace(get_ellipse(model_naive_bayes.mu_[i], model_naive_bayes.vars_[i][..., None] @ model_naive_bayes.vars_[i][..., None].T), row=1, col=2)
             x1, y1 = model_naive_bayes.vars_[i]
-            fig.add_shape(type="circle", xref="x", yref="y", x0=x-x1, y0=y-y1, x1=x+x1, y1=y+y1, opacity=0.5, row=1, col=2, fillcolor="White", line=dict(color="Black", width=3), layer="below")
+            fig.add_shape(type="circle", xref="x", yref="y", x0=x - x1, y0=y - y1, x1=x + x1, y1=y + y1, opacity=0.5, row=1, col=2, fillcolor="White", line=dict(color="Black", width=3), layer="below")
 
         fig.update_layout(height=1200, width=2400, title_text=f"Group predictions on the dataset {f}", title_x=0.5)
         fig.show()
@@ -148,5 +149,17 @@ def generate_fig(dataset_name, features, labels, accuracy, model_name, height=12
 
 if __name__ == '__main__':
     np.random.seed(0)
-    # run_perceptron()
+    run_perceptron()
     compare_gaussian_classifiers()
+
+    data_quizz_1 = [(0, 0), (1, 0), (2, 1), (3, 1), (4, 1), (5, 1), (6, 2), (7, 2)]
+    model_naive_bayes = GaussianNaiveBayes()
+    model_naive_bayes.fit(np.array([x for x, y in data_quizz_1]), np.array([y for x, y in data_quizz_1]))
+    print(model_naive_bayes.pi_[0])
+    print(model_naive_bayes.mu_[1])
+
+    data_quizz_2 = [([1, 1], 0), ([1, 2], 0), ([2, 3], 1), ([2, 4], 1), ([3, 3], 1), ([3, 4], 1)]
+    model_naive_bayes = GaussianNaiveBayes()
+    model_naive_bayes.fit(np.array([x for x, y in data_quizz_2]), np.array([y for x, y in data_quizz_2]))
+    print(model_naive_bayes.vars_[0][1])
+    print(model_naive_bayes.vars_[1][1])

@@ -43,7 +43,7 @@ class GaussianNaiveBayes(BaseEstimator):
         """
 
         n_samples = X.shape[0]  # 300
-        n_features = X.shape[1]  # 2
+        # n_features = X.shape[1]  # 2
         self.classes_, indices, counts = np.unique(y, return_counts=True, return_inverse=True)
         self.pi_ = counts / n_samples
         all_mu = []
