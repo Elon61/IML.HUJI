@@ -128,8 +128,7 @@ def compare_gaussian_classifiers():
 
         # Add ellipses depicting the covariances of the fitted Gaussians
         for i, (x, y) in enumerate(model_LDA.mu_):
-            x1, y1 = model_LDA.cov_[1] + model_LDA.cov_[0]
-            fig.add_shape(type="circle", xref="x", yref="y", x0=x-x1, y0=y-y1, x1=x+x1, y1=y+y1, opacity=0.5, row=1, col=1, fillcolor="White", line=dict(color="Black", width=3), layer="below")
+            fig.add_trace(get_ellipse(model_LDA.mu_[i], model_LDA.cov_))
         for i, (x, y) in enumerate(model_naive_bayes.mu_):
             x1, y1 = model_naive_bayes.vars_[i]
             fig.add_shape(type="circle", xref="x", yref="y", x0=x-x1, y0=y-y1, x1=x+x1, y1=y+y1, opacity=0.5, row=1, col=2, fillcolor="White", line=dict(color="Black", width=3), layer="below")

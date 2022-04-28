@@ -93,10 +93,19 @@ class GaussianNaiveBayes(BaseEstimator):
             raise ValueError("Estimator must first be fitted before calling `likelihood` function")
         col = []
         for k in range(len(self.classes_)):
-            a = np.square((X - self.mu_[k])) / self.vars_[k]
-            b = np.log(self.pi_[k] / self.vars_[k] * np.sqrt(2 * np.pi))
-            final = np.sum(b - 0.5 * a, axis=1)
+            a = np.log(self.pi_[k] / np.sqrt(2 * np.pi * self.vars_[k]))
+            b = np.square(X - self.mu_[k]) / self.vars_[k]
+            final = np.sum(a - 0.5 * b, axis=1)
             col.append(final)
+
+            # Alternative, theoretically equivalent, but somehow is not.
+            # a = np.log(self.pi_[k] / np.sum(np.sqrt(2 * np.pi * self.vars_[k])))
+            # b = []
+            # for i in range(X.shape[1]):  # the "i give up" version of this
+            #     b.append(0.5 * np.square((X.T[i].T - self.mu_[k][i])) / self.vars_[k][i])
+            # b = np.array(b).T
+            # final = a - np.sum(b, axis=1)
+            # col.append(final)
         return np.array(col).T
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
