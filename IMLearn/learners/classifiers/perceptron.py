@@ -4,7 +4,6 @@ from typing import NoReturn
 from ...base import BaseEstimator
 import numpy as np
 
-
 def default_callback(fit: Perceptron, x: np.ndarray, y: int):
     pass
 
